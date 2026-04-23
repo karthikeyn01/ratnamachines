@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ratna PM System</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f1;
+  --surface:#ffffff;
+  --surface2:#f0ede8;
+  --border:#e2ddd8;
+  --border2:#ccc8c2;
+  --text:#1a1917;
+  --muted:#7a756e;
+  --red:#c0392b;
+  --red-bg:#fdf2f1;
+  --yellow:#c47d00;
+  --yellow-bg:#fdf8ed;
+  --green:#1a7a4a;
+  --green-bg:#edf7f2;
+  --blue:#1a5c8a;
+  --blue-bg:#edf3f9;
+  --accent:#1a1917;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'IBM Plex Sans',sans-serif;
+  --radius:6px;
+  --sidebar:220px;
+}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;z-index:50}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+
+/* ── SIDEBAR ── */
+.sb-brand{padding:20px 16px 16px;border-bottom:1px solid var(--border)}
+.sb-brand-name{font-size:13px;font-weight:600;letter-spacing:0.01em}
+.sb-brand-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px}
+.sb-nav{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--muted);transition:all 0.12s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--text);color:#fff}
+.nav-item .icon{width:16px;height:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-badge{margin-left:auto;font-family:var(--mono);font-size:10px;background:var(--red);color:#fff;padding:1px 6px;border-radius:20px;font-weight:500}
+.sb-footer{padding:12px 16px;border-top:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+/* ── TOPBAR ── */
+.topbar{padding:16px 24px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+.topbar-title{font-size:16px;font-weight:600}
+.topbar-sub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:1px}
+.topbar-actions{display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all 0.12s;white-space:nowrap}
+.btn:hover{background:var(--surface2);border-color:var(--border2)}
+.btn-primary{background:var(--text);color:#fff;border-color:var(--text)}
+.btn-primary:hover{opacity:0.85}
+.btn-sm{padding:6px 10px;font-size:12px}
+
+/* ── PAGE CONTENT ── */
+.page{display:none;flex:1;padding:24px;flex-direction:column;gap:20px}
+.page.active{display:flex}
+
+/* ── STAT CARDS ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.stat-val{font-size:28px;font-weight:600;line-height:1;font-family:var(--mono)}
+.stat-label{font-size:12px;color:var(--muted);margin-top:4px}
+.stat.red .stat-val{color:var(--red)}
+.stat.yellow .stat-val{color:var(--yellow)}
+.stat.green .stat-val{color:var(--green)}
+
+/* ── ALERT CARDS ── */
+.section-label{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px}
+.alert-list{display:flex;flex-direction:column;gap:8px}
+.alert-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color 0.12s}
+.alert-card:hover{border-color:var(--border2)}
+.alert-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.alert-dot.red{background:var(--red)}
+.alert-dot.yellow{background:#e6a817}
+.alert-dot.green{background:#27ae60}
+.alert-info{flex:1}
+.alert-task{font-size:13px;font-weight:500}
+.alert-meta{font-size:12px;color:var(--muted);margin-top:2px;font-family:var(--mono)}
+.alert-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.tag{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:3px;font-weight:500}
+.tag.red{background:var(--red-bg);color:var(--red);border:1px solid rgba(192,57,43,0.2)}
+.tag.yellow{background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(196,125,0,0.2)}
+.tag.green{background:var(--green-bg);color:var(--green);border:1px solid rgba(26,122,74,0.2)}
+.tag.blue{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(26,92,138,0.2)}
+.tag.gray{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:10px 14px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);font-weight:500}
+td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.td-actions{display:flex;gap:6px;justify-content:flex-end}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:10px;width:100%;max-width:540px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:600}
+.modal-close{width:28px;height:28px;border-radius:var(--radius);border:1px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--muted)}
+.modal-body{padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12px;font-weight:500;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.05em}
+input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--sans);font-size:13px;background:var(--bg);color:var(--text);outline:none;transition:border-color 0.12s}
+input:focus,select:focus,textarea:focus{border-color:var(--border2);background:var(--surface)}
+textarea{resize:vertical;min-height:80px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.img-upload{border:1.5px dashed var(--border2);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;transition:border-color 0.12s;position:relative}
+.img-upload:hover{border-color:var(--border2)}
+.img-upload input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-upload-label{font-size:12px;color:var(--muted)}
+.img-preview{width:100%;height:140px;object-fit:cover;border-radius:var(--radius);border:1px solid var(--border);display:none}
+.img-preview.show{display:block}
+
+/* ── EXECUTE MODAL SPECIFICS ── */
+.ref-img-wrap{border-radius:var(--radius);overflow:hidden;background:var(--surface2);border:1px solid var(--border)}
+.ref-img-wrap img{width:100%;max-height:200px;object-fit:cover;display:block}
+.ref-img-wrap .no-img{padding:24px;text-align:center;font-size:12px;color:var(--muted);font-family:var(--mono)}
+.status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.status-opt{border:1.5px solid var(--border);border-radius:var(--radius);padding:10px;text-align:center;cursor:pointer;transition:all 0.12s;font-size:13px;font-weight:500}
+.status-opt:hover{border-color:var(--border2)}
+.status-opt.sel-pass{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.status-opt.sel-fail{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.status-opt.sel-fixed{background:var(--yellow-bg);border-color:var(--yellow);color:var(--yellow)}
+
+/* ── RUN CHECKS ── */
+.check-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.check-group-head{padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:12px;font-weight:600;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)}
+.check-item{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s}
+.check-item:last-child{border-bottom:none}
+.check-item:hover{background:var(--surface2)}
+.check-box{width:20px;height:20px;border-radius:4px;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.12s}
+.check-item.done .check-box{background:var(--green);border-color:var(--green)}
+.check-item.done .check-box::after{content:'';display:block;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translate(-1px,-1px)}
+.check-item.done .check-text{text-decoration:line-through;color:var(--muted)}
+.check-text{font-size:13px;flex:1}
+.check-shift{font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+/* ── REPORTS ── */
+.log-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;gap:14px;align-items:flex-start}
+.log-date{font-family:var(--mono);font-size:11px;color:var(--muted);min-width:80px}
+.log-body{flex:1}
+.log-task{font-size:13px;font-weight:500}
+.log-meta{font-size:12px;color:var(--muted);margin-top:3px}
+.log-proof{width:60px;height:50px;object-fit:cover;border-radius:4px;border:1px solid var(--border);display:block}
+
+/* ── EQUIPMENT ── */
+.equip-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:8px}
+.equip-name{font-size:14px;font-weight:600}
+.equip-meta{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.equip-tags{display:flex;gap:6px;flex-wrap:wrap}
+.equip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+
+/* ── MOBILE ── */
+.mobile-topbar{display:none;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface);align-items:center;justify-content:space-between;gap:10px}
+.hamburger{background:none;border:1px solid var(--border);border-radius:var(--radius);width:36px;height:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer}
+.hamburger span{display:block;width:14px;height:1.5px;background:var(--text)}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:40}
+
+@media(max-width:768px){
+  .sidebar{position:fixed;left:-240px;top:0;bottom:0;z-index:41;transition:left 0.2s;width:220px}
+  .sidebar.open{left:0}
+  .sidebar-overlay.open{display:block}
+  .mobile-topbar{display:flex}
+  .main{overflow-y:auto}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .page{padding:16px}
+  .field-row{grid-template-columns:1fr}
+  .topbar{display:none}
+}
+
+/* ── NOTIFICATION TOAST ── */
+.toast-wrap{position:fixed;top:16px;right:16px;z-index:300;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--text);color:#fff;padding:10px 14px;border-radius:var(--radius);font-size:13px;opacity:0;transform:translateX(20px);transition:all 0.25s;pointer-events:auto;max-width:280px}
+.toast.show{opacity:1;transform:translateX(0)}
+
+/* empty state */
+.empty{text-align:center;padding:48px 24px;color:var(--muted);font-size:13px}
+.empty strong{display:block;margin-bottom:6px;color:var(--text);font-size:14px}
+</style>
+</head>
+<body>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Sidebar overlay (mobile) -->
+<div class="sidebar-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
+
+<div class="app">
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-brand-name">Ratna PM System</div>
+    <div class="sb-brand-sub">Maintenance Tracker</div>
+  </div>
+  <nav class="sb-nav">
+    <button class="nav-item active" data-page="dashboard" onclick="navigate('dashboard',this)">
+      <span class="icon">⬜</span> Dashboard
+      <span class="nav-badge" id="nb-overdue" style="display:none">0</span>
+    </button>
+    <button class="nav-item" data-page="equipment" onclick="navigate('equipment',this)">
+      <span class="icon">◻</span> Equipment
+    </button>
+    <button class="nav-item" data-page="schedule" onclick="navigate('schedule',this)">
+      <span class="icon">◈</span> PM Schedule
+    </button>
+    <button class="nav-item" data-page="runchecks" onclick="navigate('runchecks',this)">
+      <span class="icon">◎</span> Run Checks
+    </button>
+    <button class="nav-item" data-page="reports" onclick="navigate('reports',this)">
+      <span class="icon">▤</span> Reports
+    </button>
+  </nav>
+  <div class="sb-footer" id="sb-time"></div>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="main">
+  <!-- Mobile topbar -->
+  <div class="mobile-topbar">
+    <button class="hamburger" onclick="openSidebar()">
+      <span></span><span></span><span></span>
+    </button>
+    <span style="font-size:14px;font-weight:600" id="mob-title">Dashboard</span>
+    <span style="width:36px"></span>
+  </div>
+
+  <!-- ═══════════════ DASHBOARD ═══════════════ -->
+  <div class="topbar" id="tb-dashboard">
+    <div><div class="topbar-title">Dashboard</div><div class="topbar-sub" id="today-str"></div></div>
+  </div>
+  <div class="page active" id="page-dashboard">
+    <div class="stats-row" id="stat-row"></div>
+    <div>
+      <div class="section-label">🔴 Overdue</div>
+      <div class="alert-list" id="list-overdue"><div class="empty"><strong>All clear</strong>No overdue tasks</div></div>
+    </div>
+    <div>
+      <div class="section-label">🟡 Due Soon (next 3 days)</div>
+      <div class="alert-list" id="list-soon"><div class="empty"><strong>Nothing upcoming</strong>No tasks due in 3 days</div></div>
+    </div>
+    <div>
+      <div class="section-label">🟢 Up to Date</div>
+      <div class="alert-list" id="list-ok"><div class="empty"><strong>No tasks yet</strong>Add tasks in PM Schedule</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ EQUIPMENT ═══════════════ -->
+  <div class="topbar" id="tb-equipment">
+    <div><div class="topbar-title">Equipment</div><div class="topbar-sub">Asset registry</div></div>
+    <div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openModal('equip')">+ Add Equipment</button></div>
+  </div>
+  <div class="page" id="page-equipment">
+    <div class="equip-grid" id="equip-grid"></div>
+  </div>
+
+  <!-- ═══════════════ PM SCHEDULE ═══════════════ -->
+  <div class="topbar" id="tb-schedule">
+    <div><div class="topbar-title">PM Schedule</div><div class="topbar-sub">All maintenance tasks</div></div>
+    <div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openModal('task')">+ Add Task</button></div>
+  </div>
+  <div class="page" id="page-schedule">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Task</th><th>Machine</th><th>Type</th><th>Frequency</th><th>Next Due</th><th>Status</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="task-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════ RUN CHECKS ═══════════════ -->
+  <div class="topbar" id="tb-runchecks">
+    <div><div class="topbar-title">Run Checks</div><div class="topbar-sub">Daily shift checklist</div></div>
+    <div class="topbar-actions">
+      <select id="shift-sel" style="width:auto;padding:7px 10px;font-size:12px" onchange="renderRunChecks()">
+        <option value="Morning">Morning Shift</option>
+        <option value="Afternoon">Afternoon Shift</option>
+        <option value="Night">Night Shift</option>
+      </select>
+      <button class="btn btn-sm" onclick="openModal('runcheck')">+ Add Check</button>
+    </div>
+  </div>
+  <div class="page" id="page-runchecks">
+    <div id="runcheck-list" style="display:flex;flex-direction:column;gap:16px"></div>
+  </div>
+
+  <!-- ═══════════════ REPORTS ═══════════════ -->
+  <div class="topbar" id="tb-reports">
+    <div><div class="topbar-title">Reports</div><div class="topbar-sub">Execution history</div></div>
+  </div>
+  <div class="page" id="page-reports">
+    <div id="log-list" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ═══════ MODALS ═══════ -->
+
+<!-- ADD EQUIPMENT -->
+<div class="overlay" id="overlay-equip">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Add Equipment</span>
+      <button class="modal-close" onclick="closeModal('equip')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Machine Name</label><input id="eq-name" placeholder="e.g. De-Panner, Swing Oven"></div>
+      <div class="field-row">
+        <div class="field"><label>Section</label><input id="eq-section" placeholder="e.g. Ratna, Haas"></div>
+        <div class="field"><label>Asset ID</label><input id="eq-id" placeholder="e.g. M-001"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('equip')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEquip()">Save Equipment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TASK -->
+<div class="overlay" id="overlay-task">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Add PM Task</span>
+      <button class="modal-close" onclick="closeModal('task')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Task Name</label><input id="t-name" placeholder="e.g. HT Greasing of Rack & Pinion"></div>
+      <div class="field-row">
+        <div class="field"><label>Machine</label>
+          <select id="t-machine"><option value="">Select machine...</option></select>
+        </div>
+        <div class="field"><label>Task Type</label>
+          <select id="t-type">
+            <option>PM</option><option>TBM</option><option>Run Check</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Frequency</label>
+          <select id="t-freq">
+            <option>Daily</option><option>Weekly</option><option>Monthly</option>
+            <option>Quarterly</option><option>2500 Cycles</option><option>Annual</option>
+          </select>
+        </div>
+        <div class="field"><label>Last Done</label><input type="date" id="t-lastdone"></div>
+      </div>
+      <div class="field">
+        <label>Reference Photo (part/location)</label>
+        <div class="img-upload" id="task-img-drop">
+          <input type="file" accept="image/*" onchange="previewImg(this,'task-img-preview','task-img-data')">
+          <div class="img-upload-label">📷 Tap to upload photo of the part</div>
+        </div>
+        <img id="task-img-preview" class="img-preview" style="margin-top:8px">
+      </div>
+      <input type="hidden" id="task-img-data">
+      <div class="field"><label>Officer Email (for alerts)</label><input id="t-email" type="email" placeholder="officer@company.com"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('task')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTask()">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXECUTE TASK -->
+<div class="overlay" id="overlay-execute">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="exec-title">Execute Task</span>
+      <button class="modal-close" onclick="closeModal('execute')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="ref-img-wrap" id="exec-ref-wrap">
+        <div class="no-img">No reference photo</div>
+      </div>
+      <div class="field"><label>Technician Name</label><input id="exec-tech" placeholder="Your name"></div>
+      <div class="field">
+        <label>Status</label>
+        <div class="status-grid">
+          <div class="status-opt" onclick="selectStatus('Pass',this)">✓ Pass</div>
+          <div class="status-opt" onclick="selectStatus('Fail',this)">✗ Fail</div>
+          <div class="status-opt" onclick="selectStatus('Fixed',this)">⚡ Fixed</div>
+        </div>
+      </div>
+      <div class="field"><label>Remarks</label><textarea id="exec-remarks" placeholder="Notes, observations..."></textarea></div>
+      <div class="field">
+        <label>Proof Photo</label>
+        <div class="img-upload">
+          <input type="file" accept="image/*" capture="environment" onchange="previewImg(this,'exec-img-preview','exec-img-data')">
+          <div class="img-upload-label">📷 Take / upload proof photo</div>
+        </div>
+        <img id="exec-img-preview" class="img-preview" style="margin-top:8px">
+      </div>
+      <input type="hidden" id="exec-img-data">
+      <input type="hidden" id="exec-task-id">
+      <input type="hidden" id="exec-status-val">
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('execute')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitExecution()">Mark Complete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD RUN CHECK -->
+<div class="overlay" id="overlay-runcheck">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Add Run Check Item</span>
+      <button class="modal-close" onclick="closeModal('runcheck')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Check Description</label><input id="rc-desc" placeholder="e.g. Check conveyor sensor alignment"></div>
+      <div class="field-row">
+        <div class="field"><label>Section</label><input id="rc-section" placeholder="e.g. Electrical"></div>
+        <div class="field"><label>Shift</label>
+          <select id="rc-shift">
+            <option>All Shifts</option><option>Morning</option><option>Afternoon</option><option>Night</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('runcheck')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRunCheck()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════ DATA LAYER ═══════════════
+const DB = {
+  get(k){ try{ return JSON.parse(localStorage.getItem('rpm_'+k)||'[]') }catch(e){return []} },
+  set(k,v){ localStorage.setItem('rpm_'+k, JSON.stringify(v)) },
+};
+
+function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6) }
+
+// Seed default data if fresh
+function seedIfEmpty(){
+  if(DB.get('equipment').length === 0){
+    DB.set('equipment',[
+      {id:'e1', name:'De-Panner', section:'Ratna', assetId:'R-001'},
+      {id:'e2', name:'Swing Oven', section:'Ratna', assetId:'R-002'},
+      {id:'e3', name:'RTD Panel', section:'Ratna', assetId:'R-003'},
+    ]);
+  }
+  if(DB.get('tasks').length === 0){
+    const today = new Date();
+    const fmt = d => d.toISOString().split('T')[0];
+    const ago = n => { let d=new Date(); d.setDate(d.getDate()-n); return fmt(d); }
+    DB.set('tasks',[
+      {id:'t1',name:'Cleaning and alignment check - loading sensor',machine:'De-Panner',type:'PM',freq:'Weekly',lastDone:ago(8),img:'',email:''},
+      {id:'t2',name:'Limit switch working - Loading platform',machine:'De-Panner',type:'PM',freq:'Weekly',lastDone:ago(2),img:'',email:''},
+      {id:'t3',name:'HT Greasing of Rack & Pinion',machine:'Swing Oven',type:'PM',freq:'Weekly',lastDone:ago(6),img:'',email:''},
+      {id:'t4',name:'Check tightness of tray chain',machine:'Swing Oven',type:'TBM',freq:'Weekly',lastDone:ago(1),img:'',email:''},
+      {id:'t5',name:'Check oil level of main drive gearbox (Oil 320)',machine:'De-Panner',type:'PM',freq:'Monthly',lastDone:ago(32),img:'',email:''},
+      {id:'t6',name:'Main panel cleaning and filter cleaning',machine:'RTD Panel',type:'PM',freq:'Monthly',lastDone:ago(5),img:'',email:''},
+      {id:'t7',name:'Check C-Fan belt',machine:'Swing Oven',type:'PM',freq:'Monthly',lastDone:ago(10),img:'',email:''},
+      {id:'t8',name:'Alignment of Loading platform (sprit & water level)',machine:'De-Panner',type:'TBM',freq:'Monthly',lastDone:ago(28),img:'',email:''},
+    ]);
+  }
+  if(DB.get('runchecks').length === 0){
+    DB.set('runchecks',[
+      {id:'rc1',desc:'Check conveyor sensor alignment',section:'Electrical',shift:'All Shifts'},
+      {id:'rc2',desc:'Check mould bottom deformation',section:'Mechanical',shift:'All Shifts'},
+      {id:'rc3',desc:'Motor check of Oven loader pusher',section:'Electrical',shift:'Morning'},
+      {id:'rc4',desc:'HT Greasing of C fan bearing',section:'Mechanical',shift:'Morning'},
+      {id:'rc5',desc:'Sensor (9 Nos) cleaning - Unloading platform',section:'Electrical',shift:'Afternoon'},
+      {id:'rc6',desc:'Check Exhaust fan belt tension',section:'Mechanical',shift:'Night'},
+    ]);
+  }
+}
+
+// ═══════════════ NAVIGATION ═══════════════
+function navigate(page, el){
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.topbar').forEach(t=>t.style.display='none');
+  const tb = document.getElementById('tb-'+page);
+  if(tb) tb.style.display='flex';
+  if(el) el.classList.add('active');
+  document.getElementById('page-'+page).classList.add('active');
+  const titles={dashboard:'Dashboard',equipment:'Equipment',schedule:'PM Schedule',runchecks:'Run Checks',reports:'Reports'};
+  document.getElementById('mob-title').textContent = titles[page]||page;
+  closeSidebar();
+  if(page==='dashboard') renderDashboard();
+  if(page==='equipment') renderEquipment();
+  if(page==='schedule') renderSchedule();
+  if(page==='runchecks') renderRunChecks();
+  if(page==='reports') renderReports();
+}
+
+// ═══════════════ DATE UTILS ═══════════════
+const FREQ_DAYS = {Daily:1,Weekly:7,Monthly:30,Quarterly:90,'2500 Cycles':90,Annual:365};
+function nextDue(lastDone, freq){
+  if(!lastDone) return new Date();
+  const d = new Date(lastDone);
+  d.setDate(d.getDate()+(FREQ_DAYS[freq]||30));
+  return d;
+}
+function daysUntil(date){
+  const now = new Date(); now.setHours(0,0,0,0);
+  const d = new Date(date); d.setHours(0,0,0,0);
+  return Math.round((d-now)/(1000*60*60*24));
+}
+function fmtDate(d){ return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) }
+function statusOf(task){
+  const nd = nextDue(task.lastDone, task.freq);
+  const diff = daysUntil(nd);
+  if(diff < 0) return 'red';
+  if(diff <= 3) return 'yellow';
+  return 'green';
+}
+
+// ═══════════════ DASHBOARD ═══════════════
+function renderDashboard(){
+  const tasks = DB.get('tasks');
+  const groups = {red:[],yellow:[],green:[]};
+  tasks.forEach(t=>{ groups[statusOf(t)].push(t); });
+
+  document.getElementById('stat-row').innerHTML=`
+    <div class="stat red"><div class="stat-val">${groups.red.length}</div><div class="stat-label">Overdue</div></div>
+    <div class="stat yellow"><div class="stat-val">${groups.yellow.length}</div><div class="stat-label">Due Soon</div></div>
+    <div class="stat green"><div class="stat-val">${groups.green.length}</div><div class="stat-label">Up to Date</div></div>
+    <div class="stat"><div class="stat-val">${tasks.length}</div><div class="stat-label">Total Tasks</div></div>
+  `;
+
+  const nb = document.getElementById('nb-overdue');
+  nb.textContent = groups.red.length;
+  nb.style.display = groups.red.length ? 'inline' : 'none';
+
+  renderAlertList('list-overdue', groups.red, 'red');
+  renderAlertList('list-soon', groups.yellow, 'yellow');
+  renderAlertList('list-ok', groups.green, 'green');
+
+  // Notify for overdue/due-soon (console + toast)
+  groups.red.forEach(t => notifyIfNeeded(t,'red'));
+  groups.yellow.forEach(t => notifyIfNeeded(t,'yellow'));
+}
+
+const notified = new Set();
+function notifyIfNeeded(task, sev){
+  const key = task.id+sev;
+  if(notified.has(key)) return;
+  notified.add(key);
+  if(sev==='red'){
+    toast(`⚠ OVERDUE: ${task.name} — ${task.machine}`);
+  }
+}
+
+function renderAlertList(elId, tasks, sev){
+  const el = document.getElementById(elId);
+  if(!tasks.length){ el.innerHTML=`<div class="empty"><strong>None</strong></div>`; return; }
+  el.innerHTML = tasks.map(t=>{
+    const nd = nextDue(t.lastDone, t.freq);
+    const diff = daysUntil(nd);
+    const label = diff<0 ? `${Math.abs(diff)}d overdue` : diff===0 ? 'Due today' : `Due in ${diff}d`;
+    return `<div class="alert-card" onclick="openExecute('${t.id}')">
+      <div class="alert-dot ${sev}"></div>
+      <div class="alert-info">
+        <div class="alert-task">${t.name}</div>
+        <div class="alert-meta">${t.machine} · ${t.freq}</div>
+      </div>
+      <div class="alert-right">
+        <span class="tag ${sev}">${label}</span>
+        <span class="tag gray">${t.type}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════ EQUIPMENT ═══════════════
+function renderEquipment(){
+  const equips = DB.get('equipment');
+  const tasks = DB.get('tasks');
+  const el = document.getElementById('equip-grid');
+  if(!equips.length){ el.innerHTML=`<div class="empty"><strong>No equipment yet</strong>Add your machines above</div>`; return; }
+  el.innerHTML = equips.map(e=>{
+    const cnt = tasks.filter(t=>t.machine===e.name).length;
+    return `<div class="equip-card">
+      <div class="equip-name">${e.name}</div>
+      <div class="equip-meta">${e.assetId} · ${e.section}</div>
+      <div class="equip-tags">
+        <span class="tag blue">${cnt} task${cnt!==1?'s':''}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════ SCHEDULE ═══════════════
+function renderSchedule(){
+  const tasks = DB.get('tasks');
+  const tbody = document.getElementById('task-tbody');
+  if(!tasks.length){ tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted)">No tasks yet. Add your first PM task.</td></tr>`; return; }
+  tbody.innerHTML = tasks.map(t=>{
+    const nd = nextDue(t.lastDone, t.freq);
+    const s = statusOf(t);
+    const labels={red:'Overdue',yellow:'Due Soon',green:'OK'};
+    return `<tr>
+      <td><strong>${t.name}</strong></td>
+      <td>${t.machine}</td>
+      <td><span class="tag gray">${t.type}</span></td>
+      <td><span class="tag blue">${t.freq}</span></td>
+      <td style="font-family:var(--mono);font-size:12px">${fmtDate(nd)}</td>
+      <td><span class="tag ${s}">${labels[s]}</span></td>
+      <td class="td-actions">
+        <button class="btn btn-sm" onclick="openExecute('${t.id}')">Execute</button>
+        <button class="btn btn-sm" onclick="deleteTask('${t.id}')" style="color:var(--red)">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════ RUN CHECKS ═══════════════
+function renderRunChecks(){
+  const shift = document.getElementById('shift-sel').value;
+  const items = DB.get('runchecks').filter(r=>r.shift==='All Shifts'||r.shift===shift);
+  const done = DB.get('rc-done-'+getTodayKey());
+  const bySection = {};
+  items.forEach(r=>{ (bySection[r.section]=bySection[r.section]||[]).push(r); });
+  const el = document.getElementById('runcheck-list');
+  if(!items.length){ el.innerHTML=`<div class="empty"><strong>No checks</strong>Add run check items above</div>`; return; }
+  el.innerHTML = Object.entries(bySection).map(([sec,chks])=>`
+    <div class="check-group">
+      <div class="check-group-head">${sec}</div>
+      ${chks.map(c=>`
+        <div class="check-item ${done.includes(c.id)?'done':''}" id="rci-${c.id}" onclick="toggleRC('${c.id}')">
+          <div class="check-box"></div>
+          <div class="check-text">${c.desc}</div>
+          <div class="check-shift">${c.shift}</div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function toggleRC(id){
+  const key = 'rc-done-'+getTodayKey();
+  let done = DB.get(key);
+  if(done.includes(id)) done=done.filter(x=>x!==id);
+  else done.push(id);
+  DB.set(key, done);
+  renderRunChecks();
+}
+
+function getTodayKey(){ const d=new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
+
+// ═══════════════ REPORTS ═══════════════
+function renderReports(){
+  const logs = DB.get('logs').reverse();
+  const el = document.getElementById('log-list');
+  if(!logs.length){ el.innerHTML=`<div class="empty"><strong>No execution logs yet</strong>Complete tasks to see history here</div>`; return; }
+  el.innerHTML = logs.map(l=>`
+    <div class="log-item">
+      ${l.proof?`<img class="log-proof" src="${l.proof}" alt="proof">`:
+        `<div style="width:60px;height:50px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px">📋</div>`}
+      <div class="log-body">
+        <div class="log-task">${l.taskName}</div>
+        <div class="log-meta">${l.machine} · ${l.tech} · <span class="tag ${l.status==='Pass'?'green':l.status==='Fail'?'red':'yellow'}">${l.status}</span></div>
+        ${l.remarks?`<div style="font-size:12px;color:var(--muted);margin-top:4px">${l.remarks}</div>`:''}
+      </div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);min-width:80px;text-align:right">${fmtDate(l.date)}</div>
+    </div>`).join('');
+}
+
+// ═══════════════ MODALS ═══════════════
+function openModal(id){ document.getElementById('overlay-'+id).classList.add('open'); }
+function closeModal(id){ document.getElementById('overlay-'+id).classList.remove('open'); }
+
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
+
+function openExecute(taskId){
+  const tasks = DB.get('tasks');
+  const t = tasks.find(x=>x.id===taskId);
+  if(!t) return;
+  document.getElementById('exec-title').textContent = t.name;
+  document.getElementById('exec-task-id').value = taskId;
+  document.getElementById('exec-tech').value = '';
+  document.getElementById('exec-remarks').value = '';
+  document.getElementById('exec-status-val').value = '';
+  document.getElementById('exec-img-data').value = '';
+  document.getElementById('exec-img-preview').classList.remove('show');
+  document.querySelectorAll('.status-opt').forEach(o=>o.className='status-opt');
+  const wrap = document.getElementById('exec-ref-wrap');
+  if(t.img){
+    wrap.innerHTML=`<img src="${t.img}" style="width:100%;max-height:200px;object-fit:cover;display:block">`;
+  } else {
+    wrap.innerHTML=`<div class="no-img">📷 No reference photo uploaded</div>`;
+  }
+  openModal('execute');
+}
+
+function selectStatus(s, el){
+  document.querySelectorAll('.status-opt').forEach(o=>o.className='status-opt');
+  el.className=`status-opt sel-${s.toLowerCase()}`;
+  document.getElementById('exec-status-val').value=s;
+}
+
+function submitExecution(){
+  const taskId = document.getElementById('exec-task-id').value;
+  const tech = document.getElementById('exec-tech').value.trim();
+  const status = document.getElementById('exec-status-val').value;
+  const remarks = document.getElementById('exec-remarks').value.trim();
+  const proof = document.getElementById('exec-img-data').value;
+  if(!tech){ toast('Enter technician name'); return; }
+  if(!status){ toast('Select a status'); return; }
+  const tasks = DB.get('tasks');
+  const idx = tasks.findIndex(x=>x.id===taskId);
+  if(idx===-1) return;
+  const today = new Date().toISOString().split('T')[0];
+  const logs = DB.get('logs');
+  logs.push({id:genId(),taskId,taskName:tasks[idx].name,machine:tasks[idx].machine,tech,status,remarks,proof,date:today});
+  DB.set('logs',logs);
+  tasks[idx].lastDone = today;
+  DB.set('tasks',tasks);
+  closeModal('execute');
+  toast(`✓ Task marked ${status}`);
+  renderDashboard();
+  renderSchedule();
+}
+
+// ═══════════════ SAVE HANDLERS ═══════════════
+function saveEquip(){
+  const name=document.getElementById('eq-name').value.trim();
+  const section=document.getElementById('eq-section').value.trim();
+  const assetId=document.getElementById('eq-id').value.trim();
+  if(!name){ toast('Enter machine name'); return; }
+  const equips=DB.get('equipment');
+  equips.push({id:genId(),name,section,assetId});
+  DB.set('equipment',equips);
+  // update task machine selects
+  closeModal('equip');
+  renderEquipment();
+  populateMachineSelect();
+  toast('Equipment added');
+  document.getElementById('eq-name').value='';
+  document.getElementById('eq-section').value='';
+  document.getElementById('eq-id').value='';
+}
+
+function saveTask(){
+  const name=document.getElementById('t-name').value.trim();
+  const machine=document.getElementById('t-machine').value;
+  const type=document.getElementById('t-type').value;
+  const freq=document.getElementById('t-freq').value;
+  const lastDone=document.getElementById('t-lastdone').value;
+  const img=document.getElementById('task-img-data').value;
+  const email=document.getElementById('t-email').value.trim();
+  if(!name){ toast('Enter task name'); return; }
+  const tasks=DB.get('tasks');
+  tasks.push({id:genId(),name,machine,type,freq,lastDone,img,email});
+  DB.set('tasks',tasks);
+  closeModal('task');
+  renderSchedule();
+  renderDashboard();
+  toast('Task added');
+  document.getElementById('t-name').value='';
+  document.getElementById('task-img-data').value='';
+  document.getElementById('task-img-preview').classList.remove('show');
+}
+
+function saveRunCheck(){
+  const desc=document.getElementById('rc-desc').value.trim();
+  const section=document.getElementById('rc-section').value.trim()||'General';
+  const shift=document.getElementById('rc-shift').value;
+  if(!desc){ toast('Enter check description'); return; }
+  const rcs=DB.get('runchecks');
+  rcs.push({id:genId(),desc,section,shift});
+  DB.set('runchecks',rcs);
+  closeModal('runcheck');
+  renderRunChecks();
+  toast('Check item added');
+  document.getElementById('rc-desc').value='';
+}
+
+function deleteTask(id){
+  if(!confirm('Delete this task?')) return;
+  DB.set('tasks', DB.get('tasks').filter(t=>t.id!==id));
+  renderSchedule();
+  renderDashboard();
+  toast('Task deleted');
+}
+
+// ═══════════════ IMAGE HANDLING ═══════════════
+function previewImg(input, previewId, dataId){
+  const file=input.files[0];
+  if(!file) return;
+  if(file.size > 3*1024*1024){ toast('Image too large (max 3MB)'); return; }
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const prev=document.getElementById(previewId);
+    prev.src=e.target.result;
+    prev.classList.add('show');
+    document.getElementById(dataId).value=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ═══════════════ MACHINE SELECT ═══════════════
+function populateMachineSelect(){
+  const sel=document.getElementById('t-machine');
+  const equips=DB.get('equipment');
+  sel.innerHTML='<option value="">Select machine...</option>'+equips.map(e=>`<option value="${e.name}">${e.name}</option>`).join('');
+}
+
+// ═══════════════ SIDEBAR ═══════════════
+function openSidebar(){
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sbOverlay').classList.add('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sbOverlay').classList.remove('open');
+}
+
+// ═══════════════ TOAST ═══════════════
+function toast(msg){
+  const wrap=document.getElementById('toastWrap');
+  const el=document.createElement('div');
+  el.className='toast';
+  el.textContent=msg;
+  wrap.appendChild(el);
+  requestAnimationFrame(()=>{ el.classList.add('show'); });
+  setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(),300); },3000);
+}
+
+// ═══════════════ CLOCK ═══════════════
+function updateClock(){
+  const now=new Date();
+  const ts=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  const ds=now.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+  document.getElementById('sb-time').textContent=`${ds} · ${ts}`;
+  document.getElementById('today-str').textContent=now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+setInterval(updateClock,1000);
+
+// ═══════════════ INIT ═══════════════
+seedIfEmpty();
+populateMachineSelect();
+updateClock();
+// Show first topbar
+document.getElementById('tb-dashboard').style.display='flex';
+renderDashboard();
+</script>
+</body>
+</html>
