@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Ratna - Swing Oven PM</title>
+    <style>
+        :root {
+            --dark-bg: #0a0e27;
+            --dark-surface: #151933;
+            --dark-card: #1e2139;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+        
+        /* Layout */
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        /* Left Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--dark-surface);
+            border-right: 1px solid rgba(59, 130, 246, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+        }
+        
+        .app-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .app-title {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .app-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-left: 52px;
+        }
+        
+        /* Machines Section */
+        .machines-section {
+            padding: 16px;
+        }
+        
+        .section-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            padding: 0 12px;
+        }
+        
+        .machine-item {
+            background: var(--dark-card);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .machine-item:hover {
+            border-color: var(--accent-blue);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+            transform: translateX(4px);
+        }
+        
+        .machine-item.active {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(6, 182, 212, 0.15));
+            border-color: var(--accent-blue);
+        }
+        
+        .machine-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .machine-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .machine-status {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .machine-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .stat-value {
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+        
+        /* Sub Menu */
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .submenu.show {
+            max-height: 500px;
+        }
+        
+        .submenu-item {
+            padding: 12px 16px;
+            margin: 4px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+        
+        .submenu-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            transform: translateX(4px);
+        }
+        
+        .submenu-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 3px solid var(--accent-blue);
+        }
+        
+        .submenu-item .icon {
+            font-size: 16px;
+        }
+        
+        .completion-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        /* Dashboard Cards in Sidebar */
+        .dashboard-cards {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .mini-card {
+            background: var(--dark-card);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+        }
+        
+        .mini-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .mini-card-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .mini-card-icon.mechanical {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+        
+        .mini-card-icon.electrical {
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--accent-purple);
+        }
+        
+        .mini-card-icon.tbm {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+        
+        .mini-card-title {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .mini-card-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .mini-card-detail {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--dark-bg);
+        }
+        
+        .content-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+            background: var(--dark-surface);
+        }
+        
+        .content-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .content-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .content-body {
+            padding: 32px;
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Task Sections */
+        .task-section {
+            background: var(--dark-card);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-badge {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        /* Task Items */
+        .task-item {
+            background: rgba(30, 33, 57, 0.5);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+        }
+        
+        .task-item:hover {
+            border-color: var(--accent-blue);
+            transform: translateX(4px);
+        }
+        
+        .task-item.checked {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+        }
+        
+        .task-header {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        
+        .task-checkbox {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: var(--success);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .task-content {
+            flex: 1;
+        }
+        
+        .task-title {
+            font-weight: 500;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        .task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        /* Monthly Tasks */
+        .monthly-task {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .monthly-task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        
+        .monthly-task-info {
+            flex: 1;
+        }
+        
+        .monthly-task-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        /* Forms */
+        input[type="text"],
+        input[type="date"],
+        input[type="datetime-local"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(30, 33, 57, 0.5);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            background: rgba(30, 33, 57, 0.8);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background: #059669;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(148, 163, 184, 0.2);
+            color: var(--text-primary);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(148, 163, 184, 0.3);
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+        
+        /* Badges */
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .badge-red {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+        
+        .badge-yellow {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+        
+        .badge-green {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+        
+        .badge-blue {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+        }
+        
+        /* Execution Form */
+        .execution-form {
+            display: none;
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(10, 14, 39, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .execution-form.show {
+            display: block;
+            animation: slideDown 0.3s;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--dark-card);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: rgba(59, 130, 246, 0.1);
+            padding: 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+        
+        td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+        }
+        
+        tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--dark-surface);
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .close {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(148, 163, 184, 0.1);
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .close:hover {
+            background: rgba(148, 163, 184, 0.2);
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .modal-footer {
+            padding: 24px;
+            border-top: 1px solid rgba(59, 130, 246, 0.1);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        /* Alerts */
+        .alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border-left: 4px solid;
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-left-color: var(--success);
+        }
+        
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-left-color: var(--danger);
+        }
+        
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-left-color: var(--warning);
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--dark-surface);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.5);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                z-index: 100;
+                transition: left 0.3s;
+            }
+            
+            .sidebar.show {
+                left: 0;
+            }
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Left Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="app-logo">
+                    <div class="logo-icon">🏭</div>
+                    <div class="app-title">Project Ratna</div>
+                </div>
+                <div class="app-subtitle">Maintenance System</div>
+            </div>
+            
+            <div class="machines-section">
+                <div class="section-label">Machines</div>
+                
+                <div class="machine-item active" onclick="toggleMachine('swing-oven')">
+                    <div class="machine-header">
+                        <span class="machine-name">⚙️ Swing Oven</span>
+                        <span class="machine-status"></span>
+                    </div>
+                    <div class="machine-stats">
+                        <div class="stat-item">
+                            <span>Overall:</span>
+                            <span class="stat-value" id="overall-compliance">0%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="submenu show" id="submenu-swing-oven">
+                    <div class="submenu-item active" onclick="showPage('pm-mechanical')">
+                        <span>🔧 PM Mechanical</span>
+                        <span class="completion-badge" id="badge-mechanical">0%</span>
+                    </div>
+                    <div class="submenu-item" onclick="showPage('pm-electrical')">
+                        <span>⚡ PM Electrical</span>
+                        <span class="completion-badge" id="badge-electrical">0%</span>
+                    </div>
+                    <div class="submenu-item" onclick="showPage('tbm')">
+                        <span>⏱️ TBM</span>
+                        <span class="completion-badge" id="badge-tbm">0%</span>
+                    </div>
+                    <div class="submenu-item" onclick="showPage('breakdowns')">
+                        <span>🔥 Breakdowns</span>
+                        <span class="completion-badge" id="badge-breakdowns">0</span>
+                    </div>
+                    <div class="submenu-item" onclick="showPage('alerts')">
+                        <span>🔔 Alerts</span>
+                        <span class="completion-badge badge-red" id="badge-alerts">0</span>
+                    </div>
+                    <div class="submenu-item" onclick="showPage('history')">
+                        <span>📜 History</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dashboard Cards -->
+            <div class="dashboard-cards">
+                <div class="mini-card">
+                    <div class="mini-card-header">
+                        <div class="mini-card-icon mechanical">🔧</div>
+                        <div class="mini-card-title">Mechanical</div>
+                    </div>
+                    <div class="mini-card-value" id="dash-mech">0%</div>
+                    <div class="mini-card-detail"><span id="dash-mech-detail">0/13 tasks</span></div>
+                </div>
+                
+                <div class="mini-card">
+                    <div class="mini-card-header">
+                        <div class="mini-card-icon electrical">⚡</div>
+                        <div class="mini-card-title">Electrical</div>
+                    </div>
+                    <div class="mini-card-value" id="dash-elec">0%</div>
+                    <div class="mini-card-detail"><span id="dash-elec-detail">0/10 tasks</span></div>
+                </div>
+                
+                <div class="mini-card">
+                    <div class="mini-card-header">
+                        <div class="mini-card-icon tbm">⏱️</div>
+                        <div class="mini-card-title">TBM</div>
+                    </div>
+                    <div class="mini-card-value" id="dash-tbm">0%</div>
+                    <div class="mini-card-detail"><span id="dash-tbm-detail">0/12 tasks</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- PM Mechanical Page -->
+            <div id="page-pm-mechanical" class="page active">
+                <div class="content-header">
+                    <div class="content-title">🔧 PM - Mechanical</div>
+                    <div class="content-subtitle">Preventive maintenance for mechanical components</div>
+                </div>
+                <div class="content-body">
+                    <div class="task-section">
+                        <div class="section-header">
+                            <div class="section-title">📅 Weekly Tasks</div>
+                            <span class="section-badge" id="weekly-mech-count">0/2</span>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="weekly-mech-tech" placeholder="Technician Name *">
+                        </div>
+                        <div class="form-group">
+                            <input type="date" id="weekly-mech-date">
+                        </div>
+                        <div id="weekly-mech-tasks"></div>
+                        <button class="btn btn-success" onclick="saveWeeklyMech()">✓ Save Weekly PM</button>
+                    </div>
+                    
+                    <div class="task-section">
+                        <div class="section-header">
+                            <div class="section-title">📆 Monthly Tasks</div>
+                            <span class="section-badge">11 tasks</span>
+                        </div>
+                        <div id="monthly-mech-tasks"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PM Electrical Page -->
+            <div id="page-pm-electrical" class="page">
+                <div class="content-header">
+                    <div class="content-title">⚡ PM - Electrical</div>
+                    <div class="content-subtitle">Preventive maintenance for electrical systems</div>
+                </div>
+                <div class="content-body">
+                    <div class="task-section">
+                        <div class="section-header">
+                            <div class="section-title">📅 Weekly Tasks</div>
+                            <span class="section-badge" id="weekly-elec-count">0/8</span>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="weekly-elec-tech" placeholder="Technician Name *">
+                        </div>
+                        <div class="form-group">
+                            <input type="date" id="weekly-elec-date">
+                        </div>
+                        <div id="weekly-elec-tasks"></div>
+                        <button class="btn btn-success" onclick="saveWeeklyElec()">✓ Save Weekly PM</button>
+                    </div>
+                    
+                    <div class="task-section">
+                        <div class="section-header">
+                            <div class="section-title">📆 Monthly Tasks</div>
+                            <span class="section-badge">2 tasks</span>
+                        </div>
+                        <div id="monthly-elec-tasks"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TBM Page -->
+            <div id="page-tbm" class="page">
+                <div class="content-header">
+                    <div class="content-title">⏱️ TBM - Time Based Maintenance</div>
+                    <div class="content-subtitle">Scheduled maintenance based on time intervals</div>
+                </div>
+                <div class="content-body">
+                    <div id="tbm-tasks"></div>
+                </div>
+            </div>
+
+            <!-- Breakdowns Page -->
+            <div id="page-breakdowns" class="page">
+                <div class="content-header">
+                    <div class="content-title">🔥 Breakdown Logs</div>
+                    <div class="content-subtitle">Equipment failure tracking and MTTR/MTBF analysis</div>
+                </div>
+                <div class="content-body">
+                    <button class="btn btn-primary" onclick="showBreakdownModal()" style="margin-bottom: 24px;">
+                        + Log New Breakdown
+                    </button>
+                    
+                    <div style="display: grid; gap: 16px; margin-bottom: 24px;">
+                        <div class="alert alert-danger">
+                            <strong>Total Breakdowns:</strong> <span id="total-breakdowns">0</span>
+                        </div>
+                        <div class="alert alert-warning">
+                            <strong>Open Issues:</strong> <span id="open-breakdowns">0</span>
+                        </div>
+                        <div class="alert alert-success">
+                            <strong>Avg MTTR:</strong> <span id="avg-mttr">0</span> min
+                        </div>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Started</th>
+                                <th>Resolved</th>
+                                <th>MTTR</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="breakdowns-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Alerts Page -->
+            <div id="page-alerts" class="page">
+                <div class="content-header">
+                    <div class="content-title">🔔 Alerts & Notifications</div>
+                    <div class="content-subtitle">Overdue and upcoming maintenance alerts</div>
+                </div>
+                <div class="content-body">
+                    <button class="btn btn-primary" onclick="showEmailModal()" style="margin-bottom: 24px;">
+                        📧 Configure Email Alerts
+                    </button>
+                    
+                    <div id="email-config-status" class="alert alert-success hidden"></div>
+                    
+                    <div style="display: grid; gap: 24px;">
+                        <div>
+                            <h3 style="margin-bottom: 16px; color: var(--text-primary);">🚨 Overdue Tasks</h3>
+                            <div id="overdue-tasks"></div>
+                        </div>
+                        <div>
+                            <h3 style="margin-bottom: 16px; color: var(--text-primary);">⚠️ Due Soon</h3>
+                            <div id="due-soon-tasks"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Page -->
+            <div id="page-history" class="page">
+                <div class="content-header">
+                    <div class="content-title">📜 Execution History</div>
+                    <div class="content-subtitle">Complete record of all maintenance activities</div>
+                </div>
+                <div class="content-body">
+                    <div class="form-group">
+                        <select id="history-filter" onchange="loadHistory()">
+                            <option value="all">All Categories</option>
+                            <option value="mechanical">PM Mechanical</option>
+                            <option value="electrical">PM Electrical</option>
+                            <option value="tbm">TBM</option>
+                        </select>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Task</th>
+                                <th>Category</th>
+                                <th>Technician</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breakdown Modal -->
+    <div id="breakdown-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Log Breakdown</div>
+                <button class="close" onclick="closeBreakdownModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <input type="text" id="bd-component" placeholder="Component / Sub-assembly *">
+                </div>
+                <div class="form-group">
+                    <textarea id="bd-description" placeholder="Description of failure"></textarea>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="bd-reported" placeholder="Reported By *">
+                </div>
+                <div class="form-group">
+                    <select id="bd-severity">
+                        <option value="low">Low - Minor Issue</option>
+                        <option value="medium">Medium - Reduced Performance</option>
+                        <option value="high">High - Significant Impact</option>
+                        <option value="critical">Critical - Line Down</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="datetime-local" id="bd-started">
+                </div>
+                <div class="form-group">
+                    <input type="datetime-local" id="bd-resolved" placeholder="Resolved At (optional)">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeBreakdownModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveBreakdown()">Log Breakdown</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Modal -->
+    <div id="email-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Configure Email Alerts</div>
+                <button class="close" onclick="closeEmailModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <textarea id="email-addresses" placeholder="manager@company.com, supervisor@company.com"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEmailModal()">Cancel</button>
+                <button class="btn btn-success" onclick="saveEmails()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Storage
+        let taskExecutions = JSON.parse(localStorage.getItem('task_executions') || '[]');
+        let breakdownRecords = JSON.parse(localStorage.getItem('breakdown_records') || '[]');
+        let emailConfig = JSON.parse(localStorage.getItem('email_config') || '{"emails":"","enabled":false}');
+
+        // Task Definitions (same as before - copy from working version)
+        const MECHANICAL_PM = [
+            { id: 'mpm1', task: 'HT Greasing of Rack & Pinion', frequency: 'Weekly', category: 'mechanical' },
+            { id: 'mpm2', task: 'Check tightness of tray chain', frequency: 'Weekly', category: 'mechanical' },
+            { id: 'mpm3', task: 'Check oil level of main drive gearbox (Oil 320)', frequency: 'Monthly', category: 'mechanical' },
+            { id: 'mpm4', task: 'Check main drive belt', frequency: 'Monthly', category: 'mechanical' },
+            { id: 'mpm5', task: 'Check C-Fan belt and mounting tightness', frequency: 'Monthly', category: 'mechanical' },
+            { id: 'mpm6', task: 'Check FD fan belt and mounting tightness', frequency: 'Monthly', category: 'mechanical' },
+            { id: 'mpm7', task: 'Check the condition of Exhaust fan\'s belt', frequency: 'Monthly', category: 'mechanical' },
+            { id: 'mpm8', task: 'HT Greasing of C fan bearing', frequency: 'Monthly', category: 'mechanical' },
+            { id: 'mpm9', task: 'HT greasing of FD fan', frequency: 'Monthly', category: 'mechanical' },
+            { id: 'mpm10', task: 'HT Greasing of sprocket housing', frequency: 'Monthly', category: 'mechanical' },
+            { id: 'mpm11', task: 'Alignment of Loading platform with sprit and water level', frequency: 'Monthly', category: 'mechanical' },
+            { id: 'mpm12', task: 'Alignment of Unloading platform with sprit and water level', frequency: 'Monthly', category: 'mechanical' },
+            { id: 'mpm13', task: 'Condition of Main drive sprocket and bearing wear of tray chain', frequency: 'Monthly', category: 'mechanical' }
+        ];
+
+        const ELECTRICAL_PM = [
+            { id: 'epm1', task: 'Cleaning and tightening of the sensor at loading', frequency: 'Weekly', category: 'electrical' },
+            { id: 'epm2', task: 'Cleaning and tightening of the sensor at unloading', frequency: 'Weekly', category: 'electrical' },
+            { id: 'epm3', task: 'Limit switch working of Loading platform', frequency: 'Weekly', category: 'electrical' },
+            { id: 'epm4', task: 'Limit switch working of unloading platform', frequency: 'Weekly', category: 'electrical' },
+            { id: 'epm5', task: 'Motor check of Oven loader pusher', frequency: 'Weekly', category: 'electrical' },
+            { id: 'epm6', task: 'Motor check of Oven unloader Rack & Pinion', frequency: 'Weekly', category: 'electrical' },
+            { id: 'epm7', task: 'Motor check of roller platform after unloading', frequency: 'Weekly', category: 'electrical' },
+            { id: 'epm8', task: 'Sensor (9 Nos) cleaning and working of Unloading platform', frequency: 'Weekly', category: 'electrical' },
+            { id: 'epm9', task: 'Main panel cleaning and filter cleaning', frequency: 'Monthly', category: 'electrical' },
+            { id: 'epm10', task: 'Sensor Tightening Homing sensor of the cradle position', frequency: 'Monthly', category: 'electrical' }
+        ];
+
+        const TBM_TASKS = [
+            { id: 'tbm1', task: 'Main drive sprocket and Idler sprockets housing bearing greasing', frequency: 'Monthly', category: 'tbm' },
+            { id: 'tbm2', task: 'Mould cooler filter and water circulation fins cleaning', frequency: 'Monthly', category: 'tbm' },
+            { id: 'tbm3', task: 'Cradle Base Pin/ shear pin replacement', frequency: '6 months', category: 'tbm' },
+            { id: 'tbm4', task: 'Drive motor break assembly break pad check and replace', frequency: '3 months', category: 'tbm' },
+            { id: 'tbm5', task: 'Cradle cotter pin replacement', frequency: '3 months', category: 'tbm' },
+            { id: 'tbm6', task: 'Drive V-Belt replacement (V-Belt B86)', frequency: '3 months', category: 'tbm' },
+            { id: 'tbm7', task: 'Circulation fan motor V-belt replacement (V-Belt B45)', frequency: '3 months', category: 'tbm' },
+            { id: 'tbm8', task: 'Force radiation fan motor V-belt replacement (V-Belt B69)', frequency: '3 months', category: 'tbm' },
+            { id: 'tbm9', task: 'Exhaust fan motor V-belt replacement (V-Belt B40)', frequency: '3 months', category: 'tbm' },
+            { id: 'tbm10', task: 'Oven chamber inspection and oil depositions on radial tube cleaning', frequency: '3 months', category: 'tbm' },
+            { id: 'tbm11', task: 'Burner servicing', frequency: '3 months', category: 'tbm' },
+            { id: 'tbm12', task: 'Main Drive Gear box oil change (320 Oil)', frequency: '6 months', category: 'tbm' }
+        ];
+
+        // Helper Functions
+        function saveData() {
+            localStorage.setItem('task_executions', JSON.stringify(taskExecutions));
+            localStorage.setItem('breakdown_records', JSON.stringify(breakdownRecords));
+        }
+
+        function calculateNextDue(lastDate, frequency) {
+            if (!lastDate) return null;
+            const date = new Date(lastDate);
+            switch(frequency) {
+                case 'Weekly': date.setDate(date.getDate() + 7); break;
+                case 'Monthly': date.setMonth(date.getMonth() + 1); break;
+                case '3 months': date.setMonth(date.getMonth() + 3); break;
+                case '6 months': date.setMonth(date.getMonth() + 6); break;
+            }
+            return date.toISOString().split('T')[0];
+        }
+
+        function getTaskStatus(taskId) {
+            const executions = taskExecutions.filter(e => e.taskId === taskId);
+            if (executions.length === 0) return { status: 'overdue', nextDue: null, lastDone: null };
+            
+            const latest = executions.sort((a, b) => new Date(b.executedDate) - new Date(a.executedDate))[0];
+            const task = [...MECHANICAL_PM, ...ELECTRICAL_PM, ...TBM_TASKS].find(t => t.id === taskId);
+            const nextDue = calculateNextDue(latest.executedDate, task.frequency);
+            
+            if (!nextDue) return { status: 'overdue', nextDue: null, lastDone: latest.executedDate };
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const dueDate = new Date(nextDue);
+            dueDate.setHours(0, 0, 0, 0);
+            const diffDays = Math.floor((dueDate - today) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) return { status: 'overdue', nextDue, lastDone: latest.executedDate };
+            if (diffDays <= 3) return { status: 'due-soon', nextDue, lastDone: latest.executedDate };
+            return { status: 'healthy', nextDue, lastDone: latest.executedDate };
+        }
+
+        function getComplianceMetrics(category) {
+            let tasks;
+            if (category === 'mechanical') tasks = MECHANICAL_PM;
+            else if (category === 'electrical') tasks = ELECTRICAL_PM;
+            else tasks = TBM_TASKS;
+
+            const completedTasks = new Set();
+            let overdue = 0;
+            
+            tasks.forEach(task => {
+                if (taskExecutions.some(e => e.taskId === task.id)) {
+                    completedTasks.add(task.id);
+                }
+                const { status } = getTaskStatus(task.id);
+                if (status === 'overdue') overdue++;
+            });
+
+            return {
+                total: tasks.length,
+                completed: completedTasks.size,
+                compliance: Math.round((completedTasks.size / tasks.length) * 100),
+                overdue
+            };
+        }
+
+        // Toggle machine submenu
+        function toggleMachine(machine) {
+            const submenu = document.getElementById('submenu-' + machine);
+            submenu.classList.toggle('show');
+        }
+
+        // Page Navigation
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.submenu-item').forEach(i => i.classList.remove('active'));
+            
+            document.getElementById('page-' + page).classList.add('active');
+            document.querySelectorAll('.submenu-item').forEach(item => {
+                if (item.onclick && item.onclick.toString().includes(page)) {
+                    item.classList.add('active');
+                }
+            });
+            
+            if (page === 'pm-mechanical') loadPMMechanical();
+            else if (page === 'pm-electrical') loadPMElectrical();
+            else if (page === 'tbm') loadTBM();
+            else if (page === 'breakdowns') loadBreakdowns();
+            else if (page === 'alerts') loadAlerts();
+            else if (page === 'history') loadHistory();
+        }
+
+        // Update Dashboard
+        function updateDashboard() {
+            const mech = getComplianceMetrics('mechanical');
+            const elec = getComplianceMetrics('electrical');
+            const tbm = getComplianceMetrics('tbm');
+            
+            const overall = Math.round((mech.compliance + elec.compliance + tbm.compliance) / 3);
+            
+            document.getElementById('overall-compliance').textContent = overall + '%';
+            document.getElementById('badge-mechanical').textContent = mech.compliance + '%';
+            document.getElementById('badge-electrical').textContent = elec.compliance + '%';
+            document.getElementById('badge-tbm').textContent = tbm.compliance + '%';
+            document.getElementById('badge-breakdowns').textContent = breakdownRecords.length;
+            
+            const allTasks = [...MECHANICAL_PM, ...ELECTRICAL_PM, ...TBM_TASKS];
+            const overdueCount = allTasks.filter(t => getTaskStatus(t.id).status === 'overdue').length;
+            document.getElementById('badge-alerts').textContent = overdueCount;
+            if (overdueCount > 0) {
+                document.getElementById('badge-alerts').classList.add('badge-red');
+            } else {
+                document.getElementById('badge-alerts').classList.remove('badge-red');
+            }
+            
+            document.getElementById('dash-mech').textContent = mech.compliance + '%';
+            document.getElementById('dash-mech-detail').textContent = mech.completed + '/' + mech.total + ' tasks';
+            
+            document.getElementById('dash-elec').textContent = elec.compliance + '%';
+            document.getElementById('dash-elec-detail').textContent = elec.completed + '/' + elec.total + ' tasks';
+            
+            document.getElementById('dash-tbm').textContent = tbm.compliance + '%';
+            document.getElementById('dash-tbm-detail').textContent = tbm.completed + '/' + tbm.total + ' tasks';
+        }
+
+        // PM Mechanical (copy from working version)
+        function loadPMMechanical() {
+            const weeklyTasks = MECHANICAL_PM.filter(t => t.frequency === 'Weekly');
+            const monthlyTasks = MECHANICAL_PM.filter(t => t.frequency === 'Monthly');
+            
+            const weeklyContainer = document.getElementById('weekly-mech-tasks');
+            weeklyContainer.innerHTML = '';
+            
+            weeklyTasks.forEach((task, idx) => {
+                weeklyContainer.innerHTML += `
+                    <div class="task-item">
+                        <div class="task-header">
+                            <input type="checkbox" class="task-checkbox" id="wmech-${task.id}" onchange="updateWeeklyCount('mechanical')">
+                            <div class="task-content">
+                                <div class="task-title">${idx + 1}. ${task.task}</div>
+                                <input type="text" id="wmech-remarks-${task.id}" placeholder="Remarks (optional)" style="margin-top: 8px;">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            const monthlyContainer = document.getElementById('monthly-mech-tasks');
+            monthlyContainer.innerHTML = '';
+            
+            monthlyTasks.forEach((task, idx) => {
+                const { status, nextDue, lastDone } = getTaskStatus(task.id);
+                const badgeClass = status === 'overdue' ? 'badge-red' : status === 'due-soon' ? 'badge-yellow' : 'badge-green';
+                const badgeText = status === 'overdue' ? 'Overdue' : status === 'due-soon' ? 'Due Soon' : 'OK';
+                
+                monthlyContainer.innerHTML += `
+                    <div class="task-item monthly-task">
+                        <div class="monthly-task-header">
+                            <div class="monthly-task-info">
+                                <div class="task-title">${idx + 1}. ${task.task}</div>
+                                <div class="task-meta">
+                                    ${lastDone ? `Last: ${lastDone} • Next: ${nextDue}` : 'Never executed'}
+                                </div>
+                            </div>
+                            <div class="monthly-task-actions">
+                                <span class="badge ${badgeClass}">${badgeText}</span>
+                                <button class="btn btn-sm btn-success" onclick="toggleExecution('${task.id}')">Execute</button>
+                            </div>
+                        </div>
+                        <div id="exec-${task.id}" class="execution-form">
+                            <div class="form-group">
+                                <input type="text" id="tech-${task.id}" placeholder="Technician Name *">
+                            </div>
+                            <div class="form-group">
+                                <input type="date" id="date-${task.id}" value="${new Date().toISOString().split('T')[0]}">
+                            </div>
+                            <div class="form-group">
+                                <textarea id="remarks-${task.id}" placeholder="Remarks"></textarea>
+                            </div>
+                            <button class="btn btn-sm btn-success" onclick="saveMonthlyTask('${task.id}', 'mechanical')">✓ Save</button>
+                            <button class="btn btn-sm btn-secondary" onclick="toggleExecution('${task.id}')">Cancel</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('weekly-mech-date').value = new Date().toISOString().split('T')[0];
+        }
+
+        function updateWeeklyCount(category) {
+            const weeklyTasks = category === 'mechanical' 
+                ? MECHANICAL_PM.filter(t => t.frequency === 'Weekly')
+                : ELECTRICAL_PM.filter(t => t.frequency === 'Weekly');
+            
+            const prefix = category === 'mechanical' ? 'wmech' : 'welec';
+            let checked = 0;
+            
+            weeklyTasks.forEach(task => {
+                const checkbox = document.getElementById(prefix + '-' + task.id);
+                if (checkbox && checkbox.checked) {
+                    checkbox.closest('.task-item').classList.add('checked');
+                    checked++;
+                } else if (checkbox) {
+                    checkbox.closest('.task-item').classList.remove('checked');
+                }
+            });
+            
+            document.getElementById('weekly-' + category.substring(0, 4) + '-count').textContent = 
+                checked + '/' + weeklyTasks.length;
+        }
+
+        function toggleExecution(taskId) {
+            const form = document.getElementById('exec-' + taskId);
+            form.classList.toggle('show');
+        }
+
+        function saveWeeklyMech() {
+            const techName = document.getElementById('weekly-mech-tech').value;
+            const date = document.getElementById('weekly-mech-date').value;
+            
+            if (!techName || !date) {
+                alert('Please enter technician name and date');
+                return;
+            }
+            
+            const weeklyTasks = MECHANICAL_PM.filter(t => t.frequency === 'Weekly');
+            let saved = 0;
+            
+            weeklyTasks.forEach(task => {
+                const checked = document.getElementById('wmech-' + task.id).checked;
+                if (checked) {
+                    const remarks = document.getElementById('wmech-remarks-' + task.id).value;
+                    taskExecutions.push({
+                        id: Date.now() + Math.random(),
+                        taskId: task.id,
+                        category: 'mechanical',
+                        technicianName: techName,
+                        executedDate: date,
+                        remarks: remarks,
+                        timestamp: new Date().toISOString()
+                    });
+                    saved++;
+                }
+            });
+            
+            if (saved === 0) {
+                alert('Please check at least one task');
+                return;
+            }
+            
+            saveData();
+            alert(`✓ Saved ${saved} weekly tasks!`);
+            loadPMMechanical();
+            updateDashboard();
+            
+            document.getElementById('weekly-mech-tech').value = '';
+            weeklyTasks.forEach(task => {
+                document.getElementById('wmech-' + task.id).checked = false;
+                document.getElementById('wmech-remarks-' + task.id).value = '';
+            });
+            updateWeeklyCount('mechanical');
+        }
+
+        function saveMonthlyTask(taskId, category) {
+            const techName = document.getElementById('tech-' + taskId).value;
+            const date = document.getElementById('date-' + taskId).value;
+            const remarks = document.getElementById('remarks-' + taskId).value;
+            
+            if (!techName || !date) {
+                alert('Please enter technician name and date');
+                return;
+            }
+            
+            taskExecutions.push({
+                id: Date.now(),
+                taskId: taskId,
+                category: category,
+                technicianName: techName,
+                executedDate: date,
+                remarks: remarks,
+                timestamp: new Date().toISOString()
+            });
+            
+            saveData();
+            alert('✓ Task saved!');
+            toggleExecution(taskId);
+            
+            if (category === 'mechanical') loadPMMechanical();
+            else if (category === 'electrical') loadPMElectrical();
+            else if (category === 'tbm') loadTBM();
+            
+            updateDashboard();
+        }
+
+        // PM Electrical (similar to mechanical)
+        function loadPMElectrical() {
+            const weeklyTasks = ELECTRICAL_PM.filter(t => t.frequency === 'Weekly');
+            const monthlyTasks = ELECTRICAL_PM.filter(t => t.frequency === 'Monthly');
+            
+            const weeklyContainer = document.getElementById('weekly-elec-tasks');
+            weeklyContainer.innerHTML = '';
+            
+            weeklyTasks.forEach((task, idx) => {
+                weeklyContainer.innerHTML += `
+                    <div class="task-item">
+                        <div class="task-header">
+                            <input type="checkbox" class="task-checkbox" id="welec-${task.id}" onchange="updateWeeklyCount('electrical')">
+                            <div class="task-content">
+                                <div class="task-title">${idx + 1}. ${task.task}</div>
+                                <input type="text" id="welec-remarks-${task.id}" placeholder="Remarks (optional)" style="margin-top: 8px;">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            const monthlyContainer = document.getElementById('monthly-elec-tasks');
+            monthlyContainer.innerHTML = '';
+            
+            monthlyTasks.forEach((task, idx) => {
+                const { status, nextDue, lastDone } = getTaskStatus(task.id);
+                const badgeClass = status === 'overdue' ? 'badge-red' : status === 'due-soon' ? 'badge-yellow' : 'badge-green';
+                const badgeText = status === 'overdue' ? 'Overdue' : status === 'due-soon' ? 'Due Soon' : 'OK';
+                
+                monthlyContainer.innerHTML += `
+                    <div class="task-item monthly-task">
+                        <div class="monthly-task-header">
+                            <div class="monthly-task-info">
+                                <div class="task-title">${idx + 1}. ${task.task}</div>
+                                <div class="task-meta">
+                                    ${lastDone ? `Last: ${lastDone} • Next: ${nextDue}` : 'Never executed'}
+                                </div>
+                            </div>
+                            <div class="monthly-task-actions">
+                                <span class="badge ${badgeClass}">${badgeText}</span>
+                                <button class="btn btn-sm btn-success" onclick="toggleExecution('${task.id}')">Execute</button>
+                            </div>
+                        </div>
+                        <div id="exec-${task.id}" class="execution-form">
+                            <div class="form-group">
+                                <input type="text" id="tech-${task.id}" placeholder="Technician Name *">
+                            </div>
+                            <div class="form-group">
+                                <input type="date" id="date-${task.id}" value="${new Date().toISOString().split('T')[0]}">
+                            </div>
+                            <div class="form-group">
+                                <textarea id="remarks-${task.id}" placeholder="Remarks"></textarea>
+                            </div>
+                            <button class="btn btn-sm btn-success" onclick="saveMonthlyTask('${task.id}', 'electrical')">✓ Save</button>
+                            <button class="btn btn-sm btn-secondary" onclick="toggleExecution('${task.id}')">Cancel</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('weekly-elec-date').value = new Date().toISOString().split('T')[0];
+        }
+
+        function saveWeeklyElec() {
+            const techName = document.getElementById('weekly-elec-tech').value;
+            const date = document.getElementById('weekly-elec-date').value;
+            
+            if (!techName || !date) {
+                alert('Please enter technician name and date');
+                return;
+            }
+            
+            const weeklyTasks = ELECTRICAL_PM.filter(t => t.frequency === 'Weekly');
+            let saved = 0;
+            
+            weeklyTasks.forEach(task => {
+                const checked = document.getElementById('welec-' + task.id).checked;
+                if (checked) {
+                    const remarks = document.getElementById('welec-remarks-' + task.id).value;
+                    taskExecutions.push({
+                        id: Date.now() + Math.random(),
+                        taskId: task.id,
+                        category: 'electrical',
+                        technicianName: techName,
+                        executedDate: date,
+                        remarks: remarks,
+                        timestamp: new Date().toISOString()
+                    });
+                    saved++;
+                }
+            });
+            
+            if (saved === 0) {
+                alert('Please check at least one task');
+                return;
+            }
+            
+            saveData();
+            alert(`✓ Saved ${saved} weekly tasks!`);
+            loadPMElectrical();
+            updateDashboard();
+            
+            document.getElementById('weekly-elec-tech').value = '';
+            weeklyTasks.forEach(task => {
+                document.getElementById('welec-' + task.id).checked = false;
+                document.getElementById('welec-remarks-' + task.id).value = '';
+            });
+            updateWeeklyCount('electrical');
+        }
+
+        // TBM
+        function loadTBM() {
+            const container = document.getElementById('tbm-tasks');
+            container.innerHTML = '';
+            
+            TBM_TASKS.forEach((task, idx) => {
+                const { status, nextDue, lastDone } = getTaskStatus(task.id);
+                const badgeClass = status === 'overdue' ? 'badge-red' : status === 'due-soon' ? 'badge-yellow' : 'badge-green';
+                const badgeText = status === 'overdue' ? 'Overdue' : status === 'due-soon' ? 'Due Soon' : 'OK';
+                
+                container.innerHTML += `
+                    <div class="task-section">
+                        <div class="task-item monthly-task">
+                            <div class="monthly-task-header">
+                                <div class="monthly-task-info">
+                                    <div class="task-title">${idx + 1}. ${task.task}</div>
+                                    <div class="task-meta">
+                                        <span class="badge badge-blue">${task.frequency}</span>
+                                        <span>${lastDone ? `Last: ${lastDone} • Next: ${nextDue}` : 'Never executed'}</span>
+                                    </div>
+                                </div>
+                                <div class="monthly-task-actions">
+                                    <span class="badge ${badgeClass}">${badgeText}</span>
+                                    <button class="btn btn-sm btn-success" onclick="toggleExecution('${task.id}')">Execute</button>
+                                </div>
+                            </div>
+                            <div id="exec-${task.id}" class="execution-form">
+                                <div class="form-group">
+                                    <input type="text" id="tech-${task.id}" placeholder="Technician Name *">
+                                </div>
+                                <div class="form-group">
+                                    <input type="date" id="date-${task.id}" value="${new Date().toISOString().split('T')[0]}">
+                                </div>
+                                <div class="form-group">
+                                    <textarea id="remarks-${task.id}" placeholder="Remarks"></textarea>
+                                </div>
+                                <button class="btn btn-sm btn-success" onclick="saveMonthlyTask('${task.id}', 'tbm')">✓ Save</button>
+                                <button class="btn btn-sm btn-secondary" onclick="toggleExecution('${task.id}')">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Breakdowns
+        function loadBreakdowns() {
+            const total = breakdownRecords.length;
+            const open = breakdownRecords.filter(b => !b.resolvedAt).length;
+            const resolved = breakdownRecords.filter(b => b.resolvedAt && b.mttr);
+            const avgMTTR = resolved.length > 0 
+                ? Math.round(resolved.reduce((sum, b) => sum + b.mttr, 0) / resolved.length)
+                : 0;
+            
+            document.getElementById('total-breakdowns').textContent = total;
+            document.getElementById('open-breakdowns').textContent = open;
+            document.getElementById('avg-mttr').textContent = avgMTTR;
+            
+            const tbody = document.getElementById('breakdowns-tbody');
+            tbody.innerHTML = '';
+            
+            if (breakdownRecords.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8;">No breakdowns logged</td></tr>';
+            } else {
+                breakdownRecords.sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt)).forEach(b => {
+                    const statusClass = b.resolvedAt ? 'badge-green' : 'badge-red';
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${b.component}</td>
+                            <td>${new Date(b.startedAt).toLocaleString('en-IN')}</td>
+                            <td>${b.resolvedAt ? new Date(b.resolvedAt).toLocaleString('en-IN') : '<span class="badge badge-red">Ongoing</span>'}</td>
+                            <td>${b.mttr ? b.mttr + ' min' : '—'}</td>
+                            <td><span class="badge ${statusClass}">${b.status}</span></td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function showBreakdownModal() {
+            document.getElementById('breakdown-modal').classList.add('show');
+            document.getElementById('bd-started').value = new Date().toISOString().slice(0, 16);
+        }
+
+        function closeBreakdownModal() {
+            document.getElementById('breakdown-modal').classList.remove('show');
+        }
+
+        function saveBreakdown() {
+            const component = document.getElementById('bd-component').value;
+            const description = document.getElementById('bd-description').value;
+            const reportedBy = document.getElementById('bd-reported').value;
+            const startedAt = document.getElementById('bd-started').value;
+            const resolvedAt = document.getElementById('bd-resolved').value;
+            const severity = document.getElementById('bd-severity').value;
+            
+            if (!component || !reportedBy || !startedAt) {
+                alert('Please fill required fields');
+                return;
+            }
+            
+            let mttr = null;
+            if (resolvedAt) {
+                const start = new Date(startedAt);
+                const end = new Date(resolvedAt);
+                mttr = Math.round((end - start) / (1000 * 60));
+            }
+            
+            breakdownRecords.push({
+                id: Date.now(),
+                component,
+                description,
+                reportedBy,
+                startedAt,
+                resolvedAt,
+                severity,
+                mttr,
+                status: resolvedAt ? 'Resolved' : 'Open',
+                timestamp: new Date().toISOString()
+            });
+            
+            localStorage.setItem('breakdown_records', JSON.stringify(breakdownRecords));
+            closeBreakdownModal();
+            loadBreakdowns();
+            updateDashboard();
+            alert('✓ Breakdown logged!');
+        }
+
+        // Alerts
+        function loadAlerts() {
+            const allTasks = [...MECHANICAL_PM, ...ELECTRICAL_PM, ...TBM_TASKS];
+            const overdue = [];
+            const dueSoon = [];
+            
+            allTasks.forEach(task => {
+                const { status, nextDue } = getTaskStatus(task.id);
+                if (status === 'overdue') overdue.push({ ...task, nextDue });
+                else if (status === 'due-soon') dueSoon.push({ ...task, nextDue });
+            });
+            
+            const overdueContainer = document.getElementById('overdue-tasks');
+            overdueContainer.innerHTML = '';
+            if (overdue.length === 0) {
+                overdueContainer.innerHTML = '<div class="alert alert-success">✓ No overdue tasks</div>';
+            } else {
+                overdue.forEach(task => {
+                    overdueContainer.innerHTML += `
+                        <div class="alert alert-danger">
+                            <strong>${task.task}</strong><br>
+                            <small>${task.frequency} • Due: ${task.nextDue || 'Not scheduled'}</small>
+                        </div>
+                    `;
+                });
+            }
+            
+            const dueSoonContainer = document.getElementById('due-soon-tasks');
+            dueSoonContainer.innerHTML = '';
+            if (dueSoon.length === 0) {
+                dueSoonContainer.innerHTML = '<div class="alert alert-success">✓ No tasks due soon</div>';
+            } else {
+                dueSoon.forEach(task => {
+                    dueSoonContainer.innerHTML += `
+                        <div class="alert alert-warning">
+                            <strong>${task.task}</strong><br>
+                            <small>${task.frequency} • Due: ${task.nextDue}</small>
+                        </div>
+                    `;
+                });
+            }
+            
+            if (emailConfig.enabled) {
+                const status = document.getElementById('email-config-status');
+                status.classList.remove('hidden');
+                status.innerHTML = `<strong>✓ Email alerts configured</strong><br>Sending to: ${emailConfig.emails}`;
+            }
+        }
+
+        function showEmailModal() {
+            document.getElementById('email-modal').classList.add('show');
+            document.getElementById('email-addresses').value = emailConfig.emails;
+        }
+
+        function closeEmailModal() {
+            document.getElementById('email-modal').classList.remove('show');
+        }
+
+        function saveEmails() {
+            const emails = document.getElementById('email-addresses').value;
+            if (!emails.trim()) {
+                alert('Please enter at least one email');
+                return;
+            }
+            
+            emailConfig = { emails: emails, enabled: true };
+            localStorage.setItem('email_config', JSON.stringify(emailConfig));
+            closeEmailModal();
+            loadAlerts();
+            alert('✓ Email configuration saved!');
+        }
+
+        // History
+        function loadHistory() {
+            const filter = document.getElementById('history-filter').value;
+            const tbody = document.getElementById('history-tbody');
+            tbody.innerHTML = '';
+            
+            let filtered = taskExecutions;
+            if (filter !== 'all') {
+                filtered = taskExecutions.filter(e => e.category === filter);
+            }
+            
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8;">No records</td></tr>';
+            } else {
+                filtered.sort((a, b) => new Date(b.executedDate) - new Date(a.executedDate)).forEach(exec => {
+                    const task = [...MECHANICAL_PM, ...ELECTRICAL_PM, ...TBM_TASKS].find(t => t.id === exec.taskId);
+                    const catBadge = exec.category === 'mechanical' ? 'badge-red' : exec.category === 'electrical' ? 'badge-blue' : 'badge-yellow';
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${exec.executedDate}</td>
+                            <td>${task ? task.task : exec.taskId}</td>
+                            <td><span class="badge ${catBadge}">${exec.category}</span></td>
+                            <td>${exec.technicianName}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        // Initialize
+        window.onload = function() {
+            updateDashboard();
+            loadPMMechanical();
+        };
+    </script>
+</body>
+</html>
